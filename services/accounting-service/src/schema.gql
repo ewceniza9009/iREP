@@ -1,0 +1,54 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Account {
+  id: ID!
+  accountCode: String!
+  accountName: String!
+  accountType: String!
+  isActive: Boolean!
+  createdAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type TransactionLine {
+  id: ID!
+  debitAmount: Float!
+  creditAmount: Float!
+}
+
+type Transaction {
+  id: ID!
+  description: String!
+  totalAmount: Float!
+  transactionDate: DateTime!
+  lines: [TransactionLine!]!
+}
+
+type Query {
+  accounts: [Account!]!
+  account(id: ID!): Account!
+  transactions: [Transaction!]!
+  transaction(id: ID!): Transaction!
+}
+
+type Mutation {
+  createTransaction(createTransactionInput: CreateTransactionInput!): Transaction!
+}
+
+input CreateTransactionInput {
+  description: String!
+  lines: [TransactionLineInput!]!
+}
+
+input TransactionLineInput {
+  accountId: String!
+  debitAmount: Float
+  creditAmount: Float
+  description: String
+}

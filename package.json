@@ -1,0 +1,24 @@
+{
+  "name": "irep-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "iREP - Comprehensive Real Estate Management Platform",
+  "scripts": {
+    "install:all": "npm install && npm-run-all --parallel install-pkg:*",
+    "install-pkg:frontend": "cd frontend && npm install",
+    "install-pkg:api-gateway": "cd services/api-gateway && npm install",
+    "install-pkg:listings": "cd services/listings-service && npm install",
+    "install-pkg:projects": "cd services/projects-service && npm install",
+    "install-pkg:accounting": "cd services/accounting-service && npm install",
+    "install-pkg:tenants": "cd services/tenants-service && npm install",
+    "install-pkg:auth": "cd services/auth-service && npm install",
+    "dev": "chmod +x ./scripts/dev.sh && ./scripts/dev.sh",
+    "start:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
+    "stop": "docker-compose down -v --remove-orphans"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

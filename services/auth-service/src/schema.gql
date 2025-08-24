@@ -1,0 +1,17 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type TokenResponse {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type Mutation {
+  login(loginDto: LoginDto!): TokenResponse!
+}
+
+input LoginDto {
+  email: String!
+  password: String!
+}

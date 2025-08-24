@@ -1,0 +1,10 @@
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+# Install all dependencies for dev
+RUN npm install
+COPY . .
+# Expose the Vite dev server port
+EXPOSE 3010
+# The command to run the dev server
+CMD ["npm", "run", "dev"]

@@ -1,0 +1,207 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------
+  # Infrastructure Services
+  # ----------------------------------------
+  postgres:
+    image: postgis/postgis:13-3.1
+    container_name: irep_postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-irep_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-irep_password}
+      POSTGRES_DB: ${POSTGRES_DB:-irep}
+    volumes:
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:5.0
+    container_name: irep_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./infrastructure/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-rootpassword}
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: irep_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------
+  # Backend Microservices
+  # ----------------------------------------
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile.dev
+    container_name: irep_auth_service
+    restart: unless-stopped
+    ports:
+      - "4005:4005"
+    env_file: ./.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./services/auth-service:/usr/src/app
+      - /usr/src/app/node_modules
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile.dev
+    container_name: irep_api_gateway
+    restart: unless-stopped
+    ports:
+      - "4040:4040"
+    env_file: ./.env
+    command: ["sh", "-c", "sleep 15 && npm run start:dev"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      listings-service:
+        condition: service_started
+      projects-service:
+        condition: service_started
+      accounting-service:
+        condition: service_started
+      tenants-service:
+        condition: service_started
+    volumes:
+      - ./services/api-gateway:/usr/src/app
+      - /usr/src/app/node_modules
+  listings-service:
+    build:
+      context: ./services/listings-service
+      dockerfile: Dockerfile.dev
+    container_name: irep_listings_service
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    env_file: ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/listings-service:/usr/src/app
+      - /usr/src/app/node_modules
+
+  projects-service:
+    build:
+      context: ./services/projects-service
+      dockerfile: Dockerfile.dev
+    container_name: irep_projects_service
+    restart: unless-stopped
+    ports:
+      - "4002:4002"
+    env_file: ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./services/projects-service:/usr/src/app
+      - /usr/src/app/node_modules
+
+  accounting-service:
+    build:
+      context: ./services/accounting-service
+      dockerfile: Dockerfile.dev
+    container_name: irep_accounting_service
+    restart: unless-stopped
+    ports:
+      - "4003:4003"
+    env_file: ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/accounting-service:/usr/src/app
+      - /usr/src/app/node_modules
+  
+  tenants-service:
+    build:
+      context: ./services/tenants-service
+      dockerfile: Dockerfile.dev
+    container_name: irep_tenants_service
+    restart: unless-stopped
+    ports:
+      - "4004:4004"
+    env_file: ./.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/tenants-service:/usr/src/app
+      - /usr/src/app/node_modules
+      
+  realtime-gateway:
+    build:
+      context: ./services/realtime-gateway
+      dockerfile: Dockerfile.dev
+    container_name: irep_realtime_gateway
+    restart: unless-stopped
+    ports:
+      - "5010:80"
+    env_file: ./.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - "Redis:ConnectionString=redis:6379"
+      - "ASPNETCORE_URLS=http://+:80"
+    volumes:
+      - ./services/realtime-gateway:/app
+      - /app/publish
+
+  # ----------------------------------------
+  # Frontend Application
+  # ----------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: irep_frontend
+    restart: unless-stopped
+    ports:
+      - "3010:3010"
+    env_file: ./.env
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:

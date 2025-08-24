@@ -1,0 +1,56 @@
+# IDE and Editor specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+build/
+**/build/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files - IMPORTANT: Never commit secrets!
+.env
+.env.*
+!.env.example
+
+# NestJS specific
+.nest/
+
+# TypeScript cache files
+*.tsbuildinfo
+
+# Test reports
+coverage/
+.nyc_output/
+
+# ASP.NET Core specific for Realtime Gateway
+# Ignore bin and obj folders specifically within the realtime-gateway service
+services/realtime-gateway/bin/
+services/realtime-gateway/obj/
+
+# Rider specific
+.idea/
+*.sln.DotSettings.user
+
+# User-specific files
+*.user
+*.suo
