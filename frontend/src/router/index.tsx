@@ -4,6 +4,7 @@ import DashboardPage from '../pages/Dashboard';
 import PropertiesPage from '../pages/Properties';
 import NotFoundPage from '../pages/NotFound';
 import PrivateRoute from './PrivateRoute';
+import Layout from '../components/Layout'; // Import the Layout
 
 export function AppRouter() {
   return (
@@ -13,7 +14,9 @@ export function AppRouter() {
         path="/"
         element={
           <PrivateRoute>
-            <DashboardPage />
+            <Layout>
+              <DashboardPage />
+            </Layout>
           </PrivateRoute>
         }
       />
@@ -21,7 +24,24 @@ export function AppRouter() {
         path="/properties"
         element={
           <PrivateRoute>
-            <PropertiesPage />
+            <Layout>
+              <PropertiesPage />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      {/* Add a placeholder for the Projects route */}
+      <Route
+        path="/projects"
+        element={
+          <PrivateRoute>
+            <Layout>
+              {/* This can be a placeholder component for now */}
+              <div className="p-8">
+                  <h1 className="text-3xl font-bold">Projects</h1>
+                  <p className="mt-4">Projects management page coming soon.</p>
+              </div>
+            </Layout>
           </PrivateRoute>
         }
       />
