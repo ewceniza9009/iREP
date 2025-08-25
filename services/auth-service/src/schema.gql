@@ -9,6 +9,7 @@ type TokenResponse {
 
 type Mutation {
   login(loginDto: LoginDto!): TokenResponse!
+  logout: String!
 }
 
 input LoginDto {
