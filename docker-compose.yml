@@ -69,6 +69,12 @@ services:
     volumes:
       - ./services/auth-service:/usr/src/app
       - /usr/src/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -X POST -H 'Content-Type: application/json' --data '{\"query\":\"{__typename}\"}' http://localhost:4005/graphql || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api-gateway:
     build:
@@ -79,25 +85,25 @@ services:
     ports:
       - "4040:4040"
     env_file: ./.env
-    command: ["sh", "-c", "sleep 15 && npm run start:dev"]
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       auth-service:
-        condition: service_started
+        condition: service_healthy
       listings-service:
-        condition: service_started
+        condition: service_healthy
       projects-service:
-        condition: service_started
+        condition: service_healthy
       accounting-service:
-        condition: service_started
+        condition: service_healthy
       tenants-service:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./services/api-gateway:/usr/src/app
       - /usr/src/app/node_modules
+
   listings-service:
     build:
       context: ./services/listings-service
@@ -113,6 +119,12 @@ services:
     volumes:
       - ./services/listings-service:/usr/src/app
       - /usr/src/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -X POST -H 'Content-Type: application/json' --data '{\"query\":\"{__typename}\"}' http://localhost:4001/graphql || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   projects-service:
     build:
@@ -131,6 +143,12 @@ services:
     volumes:
       - ./services/projects-service:/usr/src/app
       - /usr/src/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -X POST -H 'Content-Type: application/json' --data '{\"query\":\"{__typename}\"}' http://localhost:4002/graphql || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   accounting-service:
     build:
@@ -147,6 +165,12 @@ services:
     volumes:
       - ./services/accounting-service:/usr/src/app
       - /usr/src/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -X POST -H 'Content-Type: application/json' --data '{\"query\":\"{__typename}\"}' http://localhost:4003/graphql || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   
   tenants-service:
     build:
@@ -163,6 +187,12 @@ services:
     volumes:
       - ./services/tenants-service:/usr/src/app
       - /usr/src/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -X POST -H 'Content-Type: application/json' --data '{\"query\":\"{__typename}\"}' http://localhost:4004/graphql || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
       
   realtime-gateway:
     build:
@@ -181,7 +211,6 @@ services:
       - "ASPNETCORE_URLS=http://+:80"
     volumes:
       - ./services/realtime-gateway:/app
-      - /app/publish
 
   # ----------------------------------------
   # Frontend Application

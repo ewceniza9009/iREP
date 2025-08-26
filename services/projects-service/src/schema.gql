@@ -26,7 +26,25 @@ type Project {
   updatedAt: DateTime!
 }
 
+type ProjectStats {
+  """Total number of projects for the tenant."""
+  total: Int!
+
+  """Number of projects in the planning phase."""
+  planning: Int!
+
+  """Number of currently active projects."""
+  active: Int!
+
+  """Number of completed projects."""
+  completed: Int!
+
+  """Number of projects currently on hold."""
+  onHold: Int!
+}
+
 type Query {
+  projectStats: ProjectStats!
   projects: [Project!]!
   project(id: ID!): Project!
 }

@@ -17,39 +17,39 @@ var corsOrigin = builder.Configuration["Cors:Origin"] ?? throw new InvalidOperat
 
 // 1. Configure SignalR and add the Redis backplane
 builder.Services.AddSignalR()
-    .AddStackExchangeRedis(redisConnectionString, options => {
-        options.Configuration.ChannelPrefix = "SignalR_iREP_";
-        // To handle transient connection failures, set AbortOnConnectFail to false
-        options.Configuration.AbortOnConnectFail = false;
-    });
+    .AddStackExchangeRedis(redisConnectionString, options => {
+        options.Configuration.ChannelPrefix = "SignalR_iREP_";
+        // To handle transient connection failures, set AbortOnConnectFail to false
+        options.Configuration.AbortOnConnectFail = false;
+    });
 
 // 2. Configure JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/events"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
-    });
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/events"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 // 3. Add Authorization services
 builder.Services.AddAuthorization();
@@ -60,14 +60,14 @@ builder.Services.AddHostedService<RedisSubscriberService>();
 // 5. Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.WithOrigins(corsOrigin)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-        });
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins(corsOrigin)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+        });
 });
 
 

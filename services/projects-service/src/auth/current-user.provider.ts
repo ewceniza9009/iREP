@@ -1,27 +1,30 @@
-import { Injectable, Scope, Provider, Inject } from '@nestjs/common';
+import { Scope, Provider, Inject, Logger } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
 import { JwtPayload } from './jwt-payload.interface';
 
-@Injectable({ scope: Scope.REQUEST })
-export class CurrentUser {
-  constructor(@Inject(REQUEST) private readonly request: { user?: JwtPayload }) {}
+const logger = new Logger('CurrentUserProvider');
 
-  getUser(): JwtPayload | null {
-    return this.request.user ?? null;
-  }
-
-  getTenantId(): string | null {
-    return this.request.user?.tenantId ?? null;
-  }
-
-  getUserId(): string | null {
-    return this.request.user?.id ?? null;
-  }
-}
-
-// This is how we provide the request-scoped class
 export const CurrentUserProvider: Provider = {
-  provide: CurrentUser,
-  useClass: CurrentUser,
+  provide: 'CurrentUser',
   scope: Scope.REQUEST,
+  useFactory: (request: Request) => {
+    const userHeader = request?.headers?.user;
+    let user: JwtPayload | null = null;
+    if (userHeader && typeof userHeader === 'string') {
+      try {
+        user = JSON.parse(userHeader);
+      } catch (e) {
+        logger.error('Failed to parse user header JSON.', e.stack);
+      }
+    } else {
+      logger.warn('User header is missing or malformed.');
+    }
+    return {
+      getUser: () => user,
+      getTenantId: () => user?.tenantId ?? null,
+      getUserId: () => user?.id ?? null,
+    };
+  },
+  inject: [REQUEST],
 };

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { CurrentUserProvider } from './current-user.provider';
+import { GqlAuthGuard } from './gql-auth.guard';
 
 @Module({
-  providers: [CurrentUserProvider],
-  exports: [CurrentUserProvider],
+  providers: [CurrentUserProvider, GqlAuthGuard],
+  exports: [CurrentUserProvider, GqlAuthGuard],
 })
 export class AuthModule {}

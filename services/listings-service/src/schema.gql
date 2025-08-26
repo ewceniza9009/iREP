@@ -22,9 +22,21 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type PropertyStats {
+  """Total number of properties for the tenant."""
+  total: Int!
+
+  """Number of properties currently available."""
+  available: Int!
+
+  """Number of properties with a pending sale/lease."""
+  pending: Int!
+}
+
 type Query {
   properties: [Property!]!
   property(id: ID!): Property!
+  propertyStats: PropertyStats!
 }
 
 type Mutation {

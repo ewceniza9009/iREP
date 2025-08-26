@@ -1,10 +1,10 @@
+// FIX: Correct the import paths
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Redis from 'ioredis';
-import { ProjectTask } from '../tasks/entities/project-task.entity';
-import { UpdateTaskInput } from '../tasks/dto/update-task.input';
-import { CurrentUser } from '../auth/current-user.provider';
+import { ProjectTask } from '../tasks/entities/project-task.entity'; // Corrected path
+import { UpdateTaskInput } from '../tasks/dto/update-task.input'; // Corrected path
 import { REDIS_CLIENT } from '../redis/redis.module';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class TasksService {
   constructor(
     @InjectRepository(ProjectTask)
     private readonly taskRepository: Repository<ProjectTask>,
-    private readonly currentUser: CurrentUser,
+    @Inject('CurrentUser') private readonly currentUser: any,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 

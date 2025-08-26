@@ -3,11 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloFederationDriver, ApolloFederationDriverConfig } from '@nestjs/apollo';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, REQUEST } from '@nestjs/core';
 import { DataSource } from 'typeorm';
-
+import { Request } from 'express';
 import { AuthModule } from './auth/auth.module';
-import { CurrentUser, CurrentUserProvider } from './auth/current-user.provider';
+import { CurrentUserProvider } from './auth/current-user.provider';
 import { GqlAuthGuard } from './auth/gql-auth.guard';
 import { AccountsModule } from './accounts/accounts.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -19,18 +19,20 @@ import { TransactionLine } from './transactions/entities/transaction-line.entity
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, AuthModule],
-      inject: [ConfigService, CurrentUser],
-      useFactory: (configService: ConfigService, currentUser: CurrentUser) => ({
+      imports: [ConfigModule],
+      inject: [ConfigService, REQUEST],
+      useFactory: (configService: ConfigService, request: Request) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
         entities: [Account, Transaction, TransactionLine],
         synchronize: false,
         extra: {
           async query(query, parameters) {
-            const tenantId = currentUser.getTenantId();
+            const userHeader = request?.headers?.user;
+            const user = userHeader ? JSON.parse(userHeader as string) : null;
+            const tenantId = user?.tenantId;
             if (tenantId) {
-              await this.query(`SET app.tenant_id = '${tenantId}'`);
+              await this.constructor.prototype.query.call(this, `SET app.tenant_id = '${tenantId}'`);
             }
             return await this.constructor.prototype.query.call(this, query, parameters);
           },
@@ -41,9 +43,12 @@ import { TransactionLine } from './transactions/entities/transaction-line.entity
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: { federation: 2, path: 'src/schema.gql' },
-      context: ({ req }) => ({
-        user: req.headers.user ? JSON.parse(req.headers.user as string) : null,
-      }),
+      context: (context) => {
+        const req = context?.req;
+        const userHeader = req?.headers?.user;
+        const user = userHeader ? JSON.parse(userHeader as string) : null;
+        return { user };
+      },
     }),
     AuthModule,
     AccountsModule,

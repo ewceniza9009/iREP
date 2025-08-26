@@ -1,15 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
-import { CurrentUser } from '../auth/current-user.provider';
+// FIX: Remove 'import { CurrentUser } from '../auth/current-user.provider';'
 
 @Injectable()
 export class AccountsService {
   constructor(
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
-    private readonly currentUser: CurrentUser,
+    @Inject('CurrentUser') private readonly currentUser: any, // FIX: Use Inject with string token
   ) {}
 
   findAll(): Promise<Account[]> {
