@@ -1,9 +1,12 @@
+// frontend/src/router/index.tsx
+
 import { Routes, Route } from 'react-router-dom';
 import LoginPage from '../pages/Login';
 import DashboardPage from '../pages/Dashboard';
 import PropertiesPage from '../pages/Properties';
+import ProjectsPage from '../pages/Projects'; // 👈 FIX: Import the real ProjectsPage
 import NotFoundPage from '../pages/NotFound';
-import ProtectedRouteLayout from './ProtectedRouteLayout'; // Import the new layout
+import ProtectedRouteLayout from './ProtectedRouteLayout';
 
 export function AppRouter() {
   return (
@@ -15,15 +18,9 @@ export function AppRouter() {
       <Route element={<ProtectedRouteLayout />}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/properties" element={<PropertiesPage />} />
-        <Route
-          path="/projects"
-          element={
-            <div className="p-8">
-              <h1 className="text-3xl font-bold">Projects</h1>
-              <p className="mt-4">Projects management page coming soon.</p>
-            </div>
-          }
-        />
+        
+        {/* 👇 FIX: Use the ProjectsPage component instead of the placeholder */}
+        <Route path="/projects" element={<ProjectsPage />} /> 
       </Route>
 
       {/* Fallback route */}

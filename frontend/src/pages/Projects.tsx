@@ -1,5 +1,8 @@
+// frontend/src/pages/Projects.tsx
+
 import { useQuery, useMutation } from '@apollo/client';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useContext } from 'react';
+import { AuthContext } from '../auth/AuthContext';
 import toast from 'react-hot-toast';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { GET_PROJECTS, CREATE_PROJECT_MUTATION } from '../graphql/projects';
@@ -82,8 +85,12 @@ function CreateProjectForm({ onCreated, onClose }: { onCreated: () => void; onCl
 }
 
 export default function ProjectsPage() {
+  const { user } = useContext(AuthContext);
   const { loading, error, data } = useQuery<{ projects: Project[] }>(GET_PROJECTS);
   const [showForm, setShowForm] = useState(false);
+  
+  // Check if the user has the 'project_manager' or 'admin' role
+  const canCreateProjects = user?.roles.includes('project_manager') || user?.roles.includes('admin');
 
   if (loading) return <p className="p-8 text-center text-gray-500">Loading projects...</p>;
   if (error) return <p className="p-8 text-red-600 bg-red-50 rounded-lg">Error: {error.message}</p>;
@@ -92,13 +99,15 @@ export default function ProjectsPage() {
     <div className="p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Projects</h1>
-        <button onClick={() => setShowForm(!showForm)} className="btn-secondary flex items-center">
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Add Project
-        </button>
+        {canCreateProjects && (
+          <button onClick={() => setShowForm(!showForm)} className="btn-secondary flex items-center">
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Add Project
+          </button>
+        )}
       </div>
 
-      {showForm && <CreateProjectForm onCreated={() => setShowForm(false)} onClose={() => setShowForm(false)} />}
+      {showForm && canCreateProjects && <CreateProjectForm onCreated={() => setShowForm(false)} onClose={() => setShowForm(false)} />}
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data?.projects.length === 0 ? (
