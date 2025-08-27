@@ -1,9 +1,4 @@
-version: '3.8'
-
 services:
-  # ----------------------------------------
-  # Infrastructure Services
-  # ----------------------------------------
   postgres:
     image: postgis/postgis:13-3.1
     container_name: irep_postgres
@@ -51,9 +46,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ----------------------------------------
-  # Backend Microservices
-  # ----------------------------------------
   auth-service:
     build:
       context: ./services/auth-service
@@ -202,19 +194,20 @@ services:
     restart: unless-stopped
     ports:
       - "5010:80"
-    env_file: ./.env
     depends_on:
       redis:
         condition: service_healthy
-    environment:
-      - "Redis:ConnectionString=redis:6379"
-      - "ASPNETCORE_URLS=http://+:80"
+    # ❗️ FINAL FIX: We are overriding the startup command to pass the
+    # configuration as command-line arguments, bypassing the broken
+    # environment variable system entirely.
+    command: >
+      dotnet run --urls http://+:80 --
+      Cors:Origin=http://localhost:3010
+      Redis:ConnectionString="redis:6379,abortConnect=false"
+      Jwt:Key=a8z5e1r2t4y6u7i8o9p0l3k2j1h5g4f9
     volumes:
       - ./services/realtime-gateway:/app
 
-  # ----------------------------------------
-  # Frontend Application
-  # ----------------------------------------
   frontend:
     build:
       context: ./frontend
@@ -229,6 +222,15 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+
+  debug-service:
+    image: alpine:latest
+    container_name: irep_debug_service
+    # This command will print the environment variables and then wait.
+    command: sh -c 'echo "--- DOCKER-COMPOSE IS PASSING THESE VARS ---" && printenv && echo "--- END VARS ---" && sleep 3600'
+    environment:
+      TEST_VARIABLE: "Hello from the correct docker-compose.yml file"
+      ASPNETCORE_Cors__Origin: "http://localhost:3010"
 
 volumes:
   postgres_data:

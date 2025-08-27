@@ -11,48 +11,52 @@ import { CurrentUserProvider } from './auth/current-user.provider';
 import { GqlAuthGuard } from './auth/gql-auth.guard';
 import { PropertiesModule } from './properties/properties.module';
 import { Property } from './properties/entities/property.entity';
+import { CreatePropertyInput } from './properties/dto/create-property.input';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: true }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService, REQUEST],
-      useFactory: (configService: ConfigService, request: Request) => ({
-        type: 'postgres',
-        url: configService.get('DATABASE_URL'),
-        entities: [Property],
-        synchronize: false,
-        extra: {
-          async query(query, parameters) {
-            const userHeader = request?.headers?.user;
-            const user = userHeader ? JSON.parse(userHeader as string) : null;
-            const tenantId = user?.tenantId;
-            if (tenantId) {
-              await this.constructor.prototype.query.call(this, `SET app.tenant_id = '${tenantId}'`);
-            }
-            return await this.constructor.prototype.query.call(this, query, parameters);
-          },
-        },
-      }),
-      dataSourceFactory: async (options) => new DataSource(options),
-    }),
-    GraphQLModule.forRoot<ApolloFederationDriverConfig>({
-      driver: ApolloFederationDriver,
-      autoSchemaFile: { federation: 2, path: 'src/schema.gql' },
-      context: (context) => {
-        const req = context?.req;
-        const userHeader = req?.headers?.user;
-        const user = userHeader ? JSON.parse(userHeader as string) : null;
-        return { user };
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService, REQUEST],
+      useFactory: (configService: ConfigService, request: Request) => ({
+        type: 'postgres',
+        url: configService.get('DATABASE_URL'),
+        entities: [Property],
+        synchronize: false,
+        extra: {
+          async query(query, parameters) {
+            const userHeader = request?.headers?.user;
+            const user = userHeader ? JSON.parse(userHeader as string) : null;
+            const tenantId = user?.tenantId;
+            if (tenantId) {
+              await this.constructor.prototype.query.call(this, `SET app.tenant_id = '${tenantId}'`);
+            }
+            return await this.constructor.prototype.query.call(this, query, parameters);
+          },
+        },
+      }),
+      dataSourceFactory: async (options) => new DataSource(options),
+    }),
+    GraphQLModule.forRoot<ApolloFederationDriverConfig>({
+      driver: ApolloFederationDriver,
+      autoSchemaFile: { federation: 2, path: 'src/schema.gql' },
+      buildSchemaOptions: {
+        orphanedTypes: [CreatePropertyInput]
       },
-    }),
-    AuthModule,
-    PropertiesModule,
-  ],
-  providers: [
-    CurrentUserProvider,
-    { provide: APP_GUARD, useClass: GqlAuthGuard },
-  ],
+      context: (context) => {
+        const req = context?.req;
+        const userHeader = req?.headers?.user;
+        const user = userHeader ? JSON.parse(userHeader as string) : null;
+        return { user };
+      },
+    }),
+    AuthModule,
+    PropertiesModule,
+  ],
+  providers: [
+    CurrentUserProvider,
+    { provide: APP_GUARD, useClass: GqlAuthGuard },
+  ],
 })
 export class AppModule {}

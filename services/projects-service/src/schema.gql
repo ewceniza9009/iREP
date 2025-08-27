@@ -43,6 +43,12 @@ type ProjectStats {
   onHold: Int!
 }
 
+input CreateProjectInput {
+  name: String!
+  description: String
+  status: String
+}
+
 type Query {
   projectStats: ProjectStats!
   projects: [Project!]!
@@ -52,12 +58,6 @@ type Query {
 type Mutation {
   createProject(createProjectInput: CreateProjectInput!): Project!
   updateTask(updateTaskInput: UpdateTaskInput!): ProjectTask!
-}
-
-input CreateProjectInput {
-  name: String!
-  description: String
-  status: String
 }
 
 input UpdateTaskInput {

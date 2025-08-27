@@ -1,3 +1,5 @@
+// services/realtime-gateway/Program.cs
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -14,12 +16,17 @@ var redisConnectionString = builder.Configuration["Redis:ConnectionString"] ?? t
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured.");
 var corsOrigin = builder.Configuration["Cors:Origin"] ?? throw new InvalidOperationException("Cors:Origin is not configured.");
 
+// Add a temporary logger to verify the CORS origin is read correctly at startup
+using (var tempServices = builder.Services.BuildServiceProvider())
+{
+    var logger = tempServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("CORS Policy 'AllowFrontend' will be configured for origin: {CorsOrigin}", corsOrigin);
+}
 
 // 1. Configure SignalR and add the Redis backplane
 builder.Services.AddSignalR()
     .AddStackExchangeRedis(redisConnectionString, options => {
         options.Configuration.ChannelPrefix = "SignalR_iREP_";
-        // To handle transient connection failures, set AbortOnConnectFail to false
         options.Configuration.AbortOnConnectFail = false;
     });
 
@@ -76,11 +83,16 @@ var app = builder.Build();
 // --- Configure the HTTP request pipeline ---
 
 app.UseRouting();
+
+// This single global CORS middleware call is sufficient and should be placed here.
 app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/", () => "iREP Real-time Gateway is running.");
+
+// The global CORS policy will apply to this hub mapping.
 app.MapHub<EventsHub>("/events");
 
 app.Run();

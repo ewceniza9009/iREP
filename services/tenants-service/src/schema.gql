@@ -29,9 +29,31 @@ type Lease {
   createdAt: DateTime!
 }
 
+input CreateLeaseInput {
+  propertyId: ID!
+  renterId: ID!
+  rentAmount: Float!
+  leaseStart: String!
+  leaseEnd: String!
+  status: String
+}
+
+input CreateTenantInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  phone: String
+  creditScore: Float
+}
+
 type Query {
   leases: [Lease!]!
   lease(id: ID!): Lease!
   tenants: [Tenant!]!
   tenant(id: ID!): Tenant!
+}
+
+type Mutation {
+  createLease(createLeaseInput: CreateLeaseInput!): Lease!
+  createTenant(createTenantInput: CreateTenantInput!): Tenant!
 }

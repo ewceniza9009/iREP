@@ -6,41 +6,44 @@ import { Tenant } from '../../tenants/entities/tenant.entity';
 @Directive('@key(fields: "id")')
 @Entity({ name: 'leases' })
 export class Lease {
-  @Field(() => ID)
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @Field(() => ID)
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ type: 'uuid' })
-  tenantId: string;
+  @Column({ type: 'uuid' })
+  tenantId: string;
 
-  @Field()
-  @Column({ type: 'uuid' })
-  propertyId: string;
+  @Field()
+  @Column({ type: 'uuid' })
+  propertyId: string;
 
-  @Field(() => ID)
-  @Column({ type: 'uuid' })
-  renterId: string;
+  @Field(() => ID)
+  @Column({ type: 'uuid' })
+  renterId: string;
 
-  @Field(() => Float)
-  @Column({ type: 'decimal', precision: 19, scale: 4 })
-  rentAmount: number;
+  @Field(() => Float)
+  @Column({ type: 'decimal', precision: 19, scale: 4 })
+  rentAmount: number;
 
-  @Field()
-  @Column()
-  status: string;
+  @Field()
+  @Column()
+  status: string;
 
-  @Field()
-  @Column()
-  leaseStart: Date;
-  
-  @Field()
-  @Column()
-  leaseEnd: Date;
+  @Field()
+  @Column()
+  leaseStart: Date;
+  
+  @Field()
+  @Column()
+  leaseEnd: Date;
 
-  @Field(() => Tenant)
-  renter: Tenant;
+  @Column({ type: 'uuid' })
+  createdBy: string;
 
-  @Field()
-  @CreateDateColumn()
-  createdAt: Date;
+  @Field(() => Tenant)
+  renter: Tenant;
+
+  @Field()
+  @CreateDateColumn()
+  createdAt: Date;
 }
