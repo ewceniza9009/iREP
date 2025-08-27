@@ -13,12 +13,14 @@ export class AuthResolver {
 
   @Mutation(() => TokenResponse)
   async login(@Args('loginDto') loginDto: LoginDto): Promise<TokenResponse> {
+    console.log('AuthResolver: Login mutation called with:', loginDto);
     return this.authService.login(loginDto);
   }
 
   @Mutation(() => String)
   @UseGuards(AuthGuard('jwt'))
   async logout(@GetUser() user: JwtPayload): Promise<string> {
+    console.log('AuthResolver: Logout mutation called for user:', user);
     const result = await this.authService.logout(user.id);
     return result.message;
   }

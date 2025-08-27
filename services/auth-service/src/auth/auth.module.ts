@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
@@ -14,18 +14,13 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     UsersModule,
     RedisModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION', '15m'),
-        },
-      }),
-      inject: [ConfigService],
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET || (() => { throw new Error('JWT_SECRET is not defined'); })(),
+      signOptions: { expiresIn: process.env.JWT_EXPIRATION || '15m' },
     }),
+    ConfigModule,
   ],
-  controllers: [],
   providers: [AuthService, AuthResolver, JwtStrategy, JwtRefreshStrategy],
   exports: [AuthService],
 })

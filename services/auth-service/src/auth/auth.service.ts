@@ -6,7 +6,6 @@ import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { TokenResponse } from './interfaces/token-response.interface';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from '../redis/redis.module';
 
@@ -17,7 +16,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
-  ) {}
+  ) {
+    const secret = this.configService.get<string>('JWT_SECRET');
+    console.log('AuthService Constructor: Loaded JWT_SECRET:', secret ? '[REDACTED]' : 'UNDEFINED');
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined in AuthService');
+    }
+  }
 
   async validateUser(email: string, pass: string): Promise<Omit<User, 'passwordHash'>> {
     const user = await this.usersService.findOneByEmail(email);
@@ -29,6 +34,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<TokenResponse> {
+    console.log('AuthService: Login called with:', JSON.stringify(loginDto, null, 2));
     const user = await this.validateUser(loginDto.email, loginDto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials.');
@@ -43,7 +49,7 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.generateAccessToken(payload),
-      this.generateRefreshToken(payload.id),
+      this.generateRefreshToken(payload),
     ]);
 
     return { accessToken, refreshToken };
@@ -69,7 +75,7 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.generateAccessToken(payload),
-      this.generateRefreshToken(payload.id),
+      this.generateRefreshToken(payload),
     ]);
 
     return { accessToken, refreshToken };
@@ -81,19 +87,20 @@ export class AuthService {
   }
 
   private async generateAccessToken(payload: JwtPayload): Promise<string> {
+    const secret = this.configService.get<string>('JWT_SECRET') || (() => { throw new Error('JWT_SECRET is not defined'); })();
     return this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
+      secret,
+      expiresIn: this.configService.get<string>('JWT_EXPIRATION', '1h'),
     });
   }
 
-  private async generateRefreshToken(userId: string): Promise<string> {
-    const refreshToken = crypto.randomBytes(32).toString('hex');
-    const expiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRATION');
-    const expiresInSeconds = this.convertTimeToSeconds(expiresIn);
-
-    await this.redis.set(`refresh_token:${userId}`, refreshToken, 'EX', expiresInSeconds);
-
+  private async generateRefreshToken(payload: JwtPayload): Promise<string> {
+    const secret = this.configService.get<string>('JWT_REFRESH_SECRET') || (() => { throw new Error('JWT_REFRESH_SECRET is not defined'); })();
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret,
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION', '7d'),
+    });
+    await this.redis.set(`refresh_token:${payload.id}`, refreshToken, 'EX', this.convertTimeToSeconds('7d'));
     return refreshToken;
   }
 

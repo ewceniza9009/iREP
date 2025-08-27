@@ -1,4 +1,3 @@
-// services/auth-service/src/auth/strategies/jwt-refresh.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -9,10 +8,11 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(private readonly configService: ConfigService) {
+    const secret = configService.get<string>('JWT_REFRESH_SECRET') || (() => { throw new Error('JWT_REFRESH_SECRET is not defined'); })();
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_REFRESH_SECRET'),
+      secretOrKey: secret,
       passReqToCallback: true,
     });
   }

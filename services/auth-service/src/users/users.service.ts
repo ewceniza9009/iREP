@@ -25,20 +25,7 @@ export class UsersService {
         passwordHash: passwordHash,
         roles: ['admin'],
       },
-      {
-        id: '550e8400-e29b-41d4-a716-446655440003',
-        tenantId: '550e8400-e29b-41d4-a716-446655440000',
-        email: 'manager@acme.realty.com',
-        passwordHash: passwordHash,
-        roles: ['project_manager'],
-      },
-      {
-        id: '550e8400-e29b-41d4-a716-446655440004',
-        tenantId: '550e8400-e29b-41d4-a716-446655440001',
-        email: 'admin@beta.properties.com',
-        passwordHash: passwordHash,
-        roles: ['admin'],
-      },
+      // ...
     ];
   }
 

@@ -8,7 +8,15 @@ import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, cache: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      envFilePath: ['.env.local', '.env'],
+      load: [() => {
+        console.log('AuthService ConfigModule: Loaded env JWT_SECRET:', process.env.JWT_SECRET ? '[REDACTED]' : 'UNDEFINED');
+        return { JWT_SECRET: process.env.JWT_SECRET };
+      }],
+    }),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: { federation: 2, path: 'src/schema.gql' },
@@ -21,4 +29,12 @@ import { RedisModule } from './redis/redis.module';
     RedisModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(configService: ConfigService) {
+    const secret = configService.get<string>('JWT_SECRET');
+    console.log('AuthService AppModule: Loaded JWT_SECRET:', secret ? '[REDACTED]' : 'UNDEFINED');
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined in AppModule');
+    }
+  }
+}
