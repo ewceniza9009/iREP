@@ -10,7 +10,7 @@ export class Project {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'tenant_id' }) // FIX
   tenantId: string;
 
   @Field()
@@ -29,14 +29,14 @@ export class Project {
   @OneToMany(() => ProjectTask, (task) => task.project)
   tasks: ProjectTask[];
   
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'created_by' }) // FIX
   createdBy: string;
 
   @Field()
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' }) // FIX
   createdAt: Date;
   
   @Field()
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' }) // FIX
   updatedAt: Date;
 }

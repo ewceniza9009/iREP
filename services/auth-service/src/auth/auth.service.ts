@@ -34,7 +34,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<TokenResponse> {
-    console.log('AuthService: Login called with:', JSON.stringify(loginDto, null, 2));
+    //console.log('AuthService: Login called with:', JSON.stringify(loginDto, null, 2));
     const user = await this.validateUser(loginDto.email, loginDto.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials.');

@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   console.log('Main: Starting Nest application');
   app.use((req, res, next) => {
-    console.log('Global Middleware: Request:', req.method, req.url, JSON.stringify(req.headers, null, 2));
+    //console.log('Global Middleware: Request:', req.method, req.url, JSON.stringify(req.headers, null, 2));
     next();
   });
 

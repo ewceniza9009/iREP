@@ -10,7 +10,7 @@ export class ProjectTask {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'tenant_id' }) // FIX
   tenantId: string;
 
   @Field()
@@ -25,7 +25,7 @@ export class ProjectTask {
   @Column({ type: 'numeric', precision: 5, scale: 2, default: 0 })
   progress: number;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'project_id' }) // FIX
   projectId: string;
 
   @Field(() => Project)
@@ -33,10 +33,10 @@ export class ProjectTask {
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'created_by' }) // FIX
   createdBy: string;
 
   @Field()
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' }) // FIX
   createdAt: Date;
 }

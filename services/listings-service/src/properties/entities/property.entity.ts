@@ -9,7 +9,7 @@ export class Property {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'tenant_id' }) // FIX
   tenantId: string;
 
   @Field()
@@ -21,7 +21,7 @@ export class Property {
   description?: string;
 
   @Field()
-  @Column()
+  @Column({ name: 'property_type' }) // FIX
   propertyType: string;
 
   @Field()
@@ -37,7 +37,7 @@ export class Property {
   bedrooms?: number;
   
   @Field()
-  @Column()
+  @Column({ name: 'address_line1' }) // FIX
   addressLine1: string;
 
   @Field()
@@ -48,14 +48,14 @@ export class Property {
   @Column({ type: 'geography', spatialFeatureType: 'Point', srid: 4326, nullable: true })
   location: any;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', name: 'created_by' }) // FIX
   createdBy: string;
 
   @Field()
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' }) // FIX
   createdAt: Date;
   
   @Field()
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' }) // FIX
   updatedAt: Date;
 }
