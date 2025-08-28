@@ -1,25 +1,28 @@
-// services/listings-service/src/properties/properties.service.ts
-
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Property } from './entities/property.entity';
 import { CreatePropertyInput } from './dto/create-property.input';
 import { PropertyStats } from './dto/property-stats.object-type';
+import { JwtPayload } from '../auth/jwt-payload.interface'; // 👈 Add this import
 
 @Injectable()
 export class PropertiesService {
   constructor(
     @InjectRepository(Property)
     private readonly propertyRepository: Repository<Property>,
-    @Inject('CurrentUser') private readonly currentUser: any, // FIX: Use Inject with string token
+    // 🗑️ We no longer inject 'CurrentUser'
   ) {}
 
-  async create(createPropertyInput: CreatePropertyInput): Promise<Property> {
+  // 👇 Update the 'create' method signature
+  async create(createPropertyInput: CreatePropertyInput, user: JwtPayload): Promise<Property> {
+    if (!user?.tenantId || !user?.id) {
+        throw new BadRequestException('User information is missing to create a property.');
+    }
     const newProperty = this.propertyRepository.create({
       ...createPropertyInput,
-      tenantId: this.currentUser.getTenantId(),
-      createdBy: this.currentUser.getUserId(),
+      tenantId: user.tenantId,  // 👈 Use the tenantId from the user object
+      createdBy: user.id,     // 👈 Use the id from the user object
     });
     return this.propertyRepository.save(newProperty);
   }

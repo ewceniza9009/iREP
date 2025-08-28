@@ -1,23 +1,28 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { CreateProjectInput } from './dto/create-project.input';
 import { ProjectStats } from './dto/project-stats.object-type';
+import { JwtPayload } from '../auth/jwt-payload.interface'; // 👈 Add this import
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @Inject('CurrentUser') private readonly currentUser: any,
+    // 🗑️ We no longer inject 'CurrentUser'
   ) {}
 
-  create(createProjectInput: CreateProjectInput): Promise<Project> {
+  // 👇 Update the 'create' method signature
+  create(createProjectInput: CreateProjectInput, user: JwtPayload): Promise<Project> {
+    if (!user?.tenantId || !user?.id) {
+      throw new BadRequestException('User information is missing to create a project.');
+    }
     const newProject = this.projectRepository.create({
       ...createProjectInput,
-      tenantId: this.currentUser.getTenantId(),
-      createdBy: this.currentUser.getUserId(),
+      tenantId: user.tenantId,  // 👈 Use the tenantId from the user object
+      createdBy: user.id,     // 👈 Use the id from the user object
     });
     return this.projectRepository.save(newProject);
   }
